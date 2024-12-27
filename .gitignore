@@ -1,0 +1,6 @@
+BulsuClinic/db.sqlite3
+*.pyc
+*.sqlite3
+/BulsuClinic/media/profile_pictures
+/BulsuClinic/media/task_files
+BulsuClinic/debug.log
