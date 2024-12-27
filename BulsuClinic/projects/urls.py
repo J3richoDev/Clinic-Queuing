@@ -2,7 +2,6 @@ from django.urls import include, path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
-from users.views import members_list
 
 urlpatterns = [
     path('setup/', views.initial_setup, name='initial_setup'),
@@ -15,7 +14,6 @@ urlpatterns = [
     path('projects/edit', views.edit_project, name='edit_project'),
 
     path('members/', views.project_members, name='members'),
-    path('add_member/', views.add_member, name='add_member'),
 
     path('tasks/', views.project_tasks, name='project_tasks'),
     path('tasks/<int:task_id>/', views.task_detail, name='task_detail'),

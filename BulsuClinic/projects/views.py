@@ -10,11 +10,9 @@ from django.views.decorators.http import require_POST
 import json
 from datetime import timedelta, datetime
 from .models import Project, Task, TaskFile, TaskComment, ProjectMember, Sprint, Notification
-from .forms import ProjectForm, TaskForm, TaskCommentForm, TaskFileForm, AddMemberForm, SprintForm
+from .forms import ProjectForm, TaskForm, TaskCommentForm, TaskFileForm, SprintForm
 from django.apps import apps
-from .forms import MemberCreationForm
 from django.db import IntegrityError
-from users.models import CustomUser
 from django.db.models import Count
 import io
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -116,131 +114,10 @@ def set_current_project(request, project_id):
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
 @login_required
-def add_member(request):
-    current_project_id = request.session.get('current_project_id')
-
-    if not current_project_id:
-        messages.warning(request, "No project selected. Please select a project first." ,extra_tags="alert-warning")
-        return redirect('home')
-
-    try:
-        project = Project.objects.get(id=current_project_id)
-    except Project.DoesNotExist:
-        messages.error(request, "The project does not exist or you do not have access." ,extra_tags="alert-error")
-        return redirect('home')
-
-    if request.method == 'POST':
-        form = AddMemberForm(request.POST)
-        if form.is_valid():
-            member = form.cleaned_data['member']
-            ProjectMember.objects.create(project=project, user=member)
-            messages.success(request, f"Member {member.username} added to the project!" ,extra_tags="alert-success")
-            return redirect('projects:create_task')  # Adjust as needed
-        else:
-            messages.error(request, "Failed to add member. Please check the form and try again." ,extra_tags="alert-error")
-    else:
-        form = AddMemberForm()
-
-    return render(request, 'projects/add_member.html', {'form': form, 'project': project})
-
-@login_required
 def dashboard(request):
-    project_id = request.session.get('current_project_id')
-    if project_id:
-        project_id = request.session.get('current_project_id')
-    else:
-        return redirect('my_profile')
-        
-    project = Project.objects.filter(id=project_id)
+   
 
-    # Filter tasks for the current project
-    tasks = Task.objects.filter(project_id=project_id)
-    total_tasks = tasks.count()
-
-    # Aggregate counts per status
-    status_totals = tasks.values('status').annotate(count=Count('id'))
-    global_progress = {
-        'todo': 0,
-        'in_progress': 0,
-        'review': 0,
-        'completed': 0,
-    }
-    for status_data in status_totals:
-        status = status_data['status']
-        count = status_data['count']
-        if status in global_progress:
-            global_progress[status] = count
-
-
-    # Totals per status
-    todo_total = global_progress['todo']
-    in_progress_total = global_progress['in_progress']
-    review_total = global_progress['review']
-    completed_total = global_progress['completed']
-
-    # Percentages for pie chart
-    def calculate_percentage(count):
-        return round(count / total_tasks * 100, 2) if total_tasks > 0 else 0
-
-    todo_percentage = calculate_percentage(todo_total)
-    in_progress_percentage = calculate_percentage(in_progress_total)
-    review_percentage = calculate_percentage(review_total)
-    completed_percentage = calculate_percentage(completed_total)
-
-    # Priority breakdown
-    priority_data = tasks.values('priority').annotate(count=Count('priority')).order_by('priority')
-    priority_percentages = {
-        item['priority']: calculate_percentage(item['count'])
-        for item in priority_data
-    }
-
-    # Data for charts
-    pie_series = [
-        todo_total,
-        in_progress_total,
-        review_total,
-        completed_total,
-    ]
-    bar_labels = ['High', 'Medium', 'Low']
-    bar_series = [
-        priority_percentages.get(priority, 0) for priority in ['high', 'medium', 'low']
-    ]
-
-    #gantt chart from gantt
-    task_data = [
-        {
-            "id": task.id,
-            "name": task.name,
-            "start": task.start_date.isoformat(),
-            "end": task.end_date.isoformat(),
-            "status": task.status,
-            "priority": task.priority,
-            "description": task.description,
-        }
-        for task in tasks
-    ]
-    # Ensure project exists and user has access
-
-    # Context data
-    context = {
-        'project': project,
-        'total_tasks': total_tasks,
-        'todo_total': todo_total,
-        'in_progress_total': in_progress_total,
-        'review_total': review_total,
-        'completed_total': completed_total,
-        'pie_series': pie_series,
-        'bar_labels': bar_labels,
-        'bar_series': bar_series,
-        'todo_percentage': todo_percentage,
-        'in_progress_percentage': in_progress_percentage,
-        'review_percentage': review_percentage,
-        'completed_percentage': completed_percentage,
-        'project': project,
-        'tasks_json': task_data,
-    }
-
-    return render(request, 'projects/dashboard.html', context)
+    return render(request, 'projects/dashboard.html', )
 
 @login_required
 def project_list(request):
@@ -257,7 +134,6 @@ def project_tasks(request):
     tasks = project.tasks.all()
     sprints = project.sprints.all()
 
-    members = CustomUser.objects.filter(assigned_projects=project)
 
     if request.method == 'POST':
         form = TaskForm(request.POST, project_id=project.id)
@@ -277,7 +153,7 @@ def project_tasks(request):
         form = TaskForm(project_id=project.id)
 
     return render(request, 'projects/project_tasks.html',
-  {'tasks': tasks, 'sprints': sprints, 'project': project, 'members': members, 'form': form})
+  {'tasks': tasks, 'sprints': sprints, 'project': project, 'form': form})
 
 @login_required
 def create_task(request):
@@ -530,7 +406,6 @@ def task_detail(request, task_id):
     files = task.files.all()
 
     sprints = project.sprints.all()
-    members = CustomUser.objects.filter(assigned_projects=project)
 
     if request.method == 'POST':
         if 'comment' in request.POST:
@@ -594,7 +469,6 @@ def task_detail(request, task_id):
             'comment_form': comment_form,
             'file_form': file_form,
             'sprints': sprints,
-            'members': members,
         },
     )
 
@@ -612,7 +486,6 @@ def my_task_detail(request, task_id):
     files = task.files.all()
 
     sprints = project.sprints.all()
-    members = CustomUser.objects.filter(assigned_projects=project)
 
     if request.method == 'POST':
         if 'comment' in request.POST:
@@ -708,7 +581,6 @@ def my_task_detail(request, task_id):
             'my_comment_form': my_comment_form,
             'my_file_form': my_file_form,
             'sprints': sprints,
-            'members': members,
         },
     )
 
@@ -1099,10 +971,9 @@ def project_members(request):
         return HttpResponseForbidden("No project selected.")
     
     project = Project.objects.get(id=project_id, owner=request.user)
-    members = CustomUser.objects.filter(role=CustomUser.MEMBER, tasks__project=project).distinct()
     
     project = Project.objects.get(id=project_id, owner=request.user)
-    return render(request, 'projects/members.html', {'project': project, 'members': members})
+    return render(request, 'projects/members.html', {'project': project, })
 
 @login_required
 def notifications(request):
@@ -1144,7 +1015,6 @@ def reports_view(request):
         return HttpResponseForbidden("You do not have access to this project.")
 
     # Fetch all members and tasks
-    members = CustomUser.objects.filter(role=CustomUser.MEMBER, tasks__project=project).distinct()
     tasks = Task.objects.filter(project=project)
     
     tasks = Task.objects.filter(project_id=project_id)
@@ -1195,19 +1065,6 @@ def reports_view(request):
         'completed': 100,
     }
 
-    # Calculate task progress for each member
-    members_data = []
-    for member in members:
-        member_tasks = tasks.filter(assigned_members=member)
-        task_count = member_tasks.count()
-        total_progress = sum(status_weights.get(task.status, 0) for task in member_tasks)
-        average_progress = round(total_progress / task_count, 2) if task_count > 0 else 0
-
-        members_data.append({
-            'member': member,
-            'task_count': task_count,
-            'average_progress': average_progress,
-        })
 
     
     # Calculate global progress for pie chart
@@ -1233,8 +1090,6 @@ def reports_view(request):
         'in_progress_percentage': in_progress_percentage,
         'review_percentage': review_percentage,
         'completed_percentage': completed_percentage,
-        'members_data': members_data,
-        'member_count': members.count(),
         'pie_series': pie_series,
         'bar_labels': bar_labels,
         'bar_series': bar_series,
@@ -1252,39 +1107,8 @@ def venue_pdf(request):
 
     header = ["Profile", "Username", "Member Progress", "Tasks", "Joined On"]
 
-    # Filter members based on tasks in the project
-    members = CustomUser.objects.filter(projectmember__project_id=project_id  ).distinct()
 
     table_data = [header]
-
-    for member in members:
-        # Filter tasks for the current member and project
-        tasks = member.tasks.filter(project_id=project_id)
-        task_count = tasks.count()
-        total_progress = 0
-
-        for task in tasks:
-            if task.status == 'todo':
-                total_progress += 25
-            elif task.status == 'in_progress':
-                total_progress += 50
-            elif task.status == 'review':
-                total_progress += 75
-            elif task.status == 'completed':
-                total_progress += 100
-
-        average_progress = total_progress / task_count if task_count > 0 else 0
-
-        # Resolve profile image path
-        profile_image = member.profile_picture if member.profile_picture else 'default-profile.png'
-        row = [
-            profile_image,
-            member.username,
-            f"{average_progress:.1f}%",
-            f"{task_count} tasks",
-            member.date_joined.strftime('%d %b %Y')
-        ]
-        table_data.append(row)
 
     table = Table(table_data)
 

@@ -1,3 +1,4 @@
+{% load static%}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -5,15 +6,463 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Management</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet"/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 </head>
 <body style="font-family: 'Poppins', sans-serif;">
-    {% block content %}
-    {% endblock %}
+
+    <!-- Message Alert-->
+    {% if messages %}
+        <div class="toast messages top-0 z-50">
+        {% for message in messages %}
+            <div role="alert" class="alert {% if message.tags %} {{ message.tags }} {% else %} alert-success{% endif %}">
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6 shrink-0 stroke-current"
+                fill="none"
+                viewBox="0 0 24 24">
+                <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="">{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <nav class="bg-white border-b border-gray-200 px-4 py-2.5 fixed left-0 right-0 top-0 z-50">
+        <div class="flex flex-wrap justify-between items-center">
+          <div class="flex justify-start items-center">
+            <button
+              data-drawer-target="drawer-navigation"
+              data-drawer-toggle="drawer-navigation"
+              aria-controls="drawer-navigation"
+              class="p-2 mr-2 text-gray-600 rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 focus:ring-2 focus:ring-gray-100"
+            >
+              <svg
+                aria-hidden="true"
+                class="w-6 h-6"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <svg
+                aria-hidden="true"
+                class="hidden w-6 h-6"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <span class="sr-only">Toggle sidebar</span>
+            </button>
+            <a href="https://flowbite.com" class="flex items-center justify-between mr-4">
+              <img
+                src="https://flowbite.s3.amazonaws.com/logo.svg"
+                class="mr-3 h-8"
+                alt="Flowbite Logo"
+              />
+              <span class="self-center text-2xl font-semibold whitespace-nowrap">Flowbite</span>
+            </a>
+            <form action="#" method="GET" class="hidden md:block md:pl-2">
+              <label for="topbar-search" class="sr-only">Search</label>
+              <div class="relative md:w-64 md:w-96">
+                <div
+                  class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none"
+                >
+                  <svg
+                    class="w-5 h-5 text-gray-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                    ></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  name="email"
+                  id="topbar-search"
+                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5"
+                  placeholder="Search"
+                />
+              </div>
+            </form>
+          </div>
+          <div class="flex items-center lg:order-2">
+            <button
+              type="button"
+              data-drawer-toggle="drawer-navigation"
+              aria-controls="drawer-navigation"
+              class="p-2 mr-1 text-gray-500 rounded-lg md:hidden hover:text-gray-900 hover:bg-gray-100 focus:ring-4 focus:ring-gray-300"
+            >
+              <span class="sr-only">Toggle search</span>
+              <svg aria-hidden="true" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path clip-rule="evenodd" fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"></path>
+              </svg>
+            </button>
+            <button id="theme-toggle" type="button" class="text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200 rounded-lg text-sm p-2.5">
+              <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+              <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+            </button>
+<!-- Notifications -->
+<button
+  type="button"
+  data-dropdown-toggle="notification-dropdown"
+  class="relative p-2 mr-1 text-gray-500 rounded-lg hover:text-gray-900 hover:bg-gray-100 focus:ring-4 focus:ring-gray-300"
+>
+  <span class="sr-only">View notifications</span>
+  <!-- Bell icon -->
+  <svg
+    aria-hidden="true"
+    class="w-6 h-6"
+    fill="currentColor"
+    viewBox="0 0 20 20"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"
+    ></path>
+  </svg>
+  {% if unread_notification_count > 0 %}
+  <div class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -end-2">
+    {{ unread_notification_count }}
+    </div>
+  {% endif %}
+</button>
+<!-- Dropdown menu -->
+<div
+  class="hidden overflow-hidden z-50 my-4 max-w-sm text-base list-none bg-white rounded divide-y divide-gray-100 shadow-lg"
+  id="notification-dropdown"
+>
+  <div
+    class="block py-2 px-4 text-base font-medium text-center text-gray-700 bg-gray-50"
+  >
+    Notifications
+  </div>
+  {% if global_notifications %}
+    {% for notif in global_notifications %}
+      <a href="{% url 'read_and_redirect' notif.id %}" class="my-1 border-b flex cursor-pointer items-center gap-3 rounded-md p-1.5 transition-all hover:bg-base-content/5 active:scale-[.98]">
+        {% if notif.actor %}
+        <img src="{% if notif.actor.profile_picture and notif.actor.profile_picture.url %}
+                {{ notif.actor.profile_picture.url }}
+            {% else %}
+                /media/profile_pictures/default-avatar.png
+            {% endif %}"
+        class="size-9 bg-base-content/10 p-0.5 mask mask-circle" alt="">
+          {% endif %}
+        <div class="grow">
+          <p class="text-md">{{ notif.message }}</p>
+          <p class="text-xs text-base-content/60">{{ notif.created_at|timesince }} ago</p>
+        </div>
+      </a>
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-3">
+      <p class="text-sm text-base-content/60">No notifications found</p>
+    </div>
+  {% endif %}
+  <hr class="-mx-2 mt-2 border-base-content/10">
+  <div class="flex items-center justify-between pt-2">
+    <a href="{% url 'notifications' %}" class="btn text-primary hover:bg-primary/10 btn-sm btn-ghost">View All</a>
+    <a href="{% url 'mark_all_as_read' %}" class="btn text-base-content/80 hover:bg-base-content/10 btn-sm btn-ghost">Mark as Read</a>
+  </div>
+</div>
+
+<button
+  type="button"
+  class="flex mx-3 text-sm bg-gray-800 rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300"
+  id="user-menu-button"
+  aria-expanded="false"
+  data-dropdown-toggle="dropdown"
+>
+  <span class="sr-only">Open user menu</span>
+  <img
+    class="w-8 h-8 rounded-full"
+    src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/michael-gough.png"
+    alt="user photo"
+  />
+</button>
+<!-- Dropdown menu -->
+<div
+  class="hidden z-50 my-4 w-56 text-base list-none bg-white rounded divide-y divide-gray-100 shadow rounded-xl"
+  id="dropdown"
+>
+  <div class="py-3 px-4">
+    <span
+      class="block text-sm font-semibold text-gray-900"
+      >Neil Sims</span
+    >
+    <span
+      class="block text-sm text-gray-900 truncate"
+      >name@flowbite.com</span
+    >
+  </div>
+  <ul
+    class="py-1 text-gray-700"
+    aria-labelledby="dropdown"
+  >
+    <li>
+      <a
+        href="#"
+        class="block py-2 px-4 text-sm hover:bg-gray-100"
+        >My profile</a
+      >
+    </li>
+    <li>
+      <a
+        href="#"
+        class="block py-2 px-4 text-sm hover:bg-gray-100"
+        >Account settings</a
+      >
+    </li>
+  </ul>
+  <ul
+    class="py-1 text-gray-700"
+    aria-labelledby="dropdown"
+  >
+    <li>
+      <a
+        href="#"
+        class="flex items-center py-2 px-4 text-sm hover:bg-gray-100"
+        ><svg
+          class="mr-2 w-5 h-5 text-gray-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+        My likes</a
+      >
+    </li>
+    <li>
+      <a
+        href="#"
+        class="flex items-center py-2 px-4 text-sm hover:bg-gray-100"
+        ><svg
+          class="mr-2 w-5 h-5 text-gray-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"
+          ></path>
+        </svg>
+        Collections</a
+      >
+    </li>
+    <li>
+      <a
+        href="#"
+        class="flex justify-between items-center py-2 px-4 text-sm hover:bg-gray-100"
+      >
+        <span class="flex items-center">
+          <svg
+            aria-hidden="true"
+            class="mr-2 w-5 h-5 text-primary-600"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
+              clip-rule="evenodd"
+            ></path>
+          </svg>
+          Pro version
+        </span>
+        <svg
+          aria-hidden="true"
+          class="w-5 h-5 text-gray-400"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+            clip-rule="evenodd"
+          ></path>
+        </svg>
+      </a>
+    </li>
+  </ul>
+  <ul
+    class="py-1 text-gray-700"
+    aria-labelledby="dropdown"
+  >
+    <li>
+      <a
+        href="#"
+        class="block py-2 px-4 text-sm hover:bg-gray-100"
+        >Sign out</a
+      >
+    </li>
+  </ul>
+</div>
+          </div>
+        </div>
+      </nav>
+
+      <aside
+      class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-white border-r border-gray-200 md:translate-x-0"
+      aria-label="Sidenav"
+      id="drawer-navigation"
+    >
+      <div class="overflow-y-auto py-5 px-3 h-full bg-white">
+        <form action="#" method="GET" class="md:hidden mb-2">
+          <label for="sidebar-search" class="sr-only">Search</label>
+          <div class="relative">
+            <div
+              class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none"
+            >
+              <svg
+                class="w-5 h-5 text-gray-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                ></path>
+              </svg>
+            </div>
+            <input
+              type="text"
+              name="search"
+              id="sidebar-search"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2"
+              placeholder="Search"
+            />
+          </div>
+        </form>
+        <ul class="space-y-2">
+                <li>
+                    <a href="{% url 'dashboard' %}"
+                       class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg hover:bg-gray-100 group {% if request.path == '/projects/dashboard/' %}active{% endif %}"
+                    >
+                        <svg
+                            aria-hidden="true"
+                            class="w-6 h-6 text-gray-500 transition duration-75 group-hover:text-gray-900"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
+                            <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
+                          </svg>
+                       <span class="ml-3">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'project_sprints' %} "
+                       class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'sprint' in request.path %}active{% endif %}">
+                        <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill="currentcolor" d="m17.717 17.137-1.436-1.438a1.003 1.003 0 0 1 1.418-1.418l3.007 3.01a1 1 0 0 1 0 1.417l-3.007 3.01a1.003 1.003 0 0 1-1.417-1.42l1.3-1.3-6.072-.003A8 8 0 0 1 4 11.01C4 6.587 7.582 3 12 3s8 3.587 8 8.01a8 8 0 0 1-.789 3.451l-1.438-1.44a6.1 6.1 0 0 0 .345-2.01A6.12 6.12 0 0 0 12 4.884a6.12 6.12 0 0 0-6.118 6.125 6.12 6.12 0 0 0 5.647 6.102zm-12.163-.119c.561.759 1.456 1.49 2.457 1.981L3.937 19C3.42 19 3 18.552 3 18s.42-1 .937-1l1.614.005z"></path>
+                        </svg>
+                       <span class="ml-3">Sprint</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'project_tasks' %} "
+                       class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'tasks' in request.path %}active{% endif %}">
+                        <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <path fill-rule="evenodd" d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4Zm0 6h16v6H4v-6Z" clip-rule="evenodd"/>
+                          <path fill-rule="evenodd" d="M5 14a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm5 0a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                        </svg>
+                       <span class="ml-3">Tasks</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'kanban_board' %}"
+                       class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'kanban' in request.path %}active{% endif %}">
+                        <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <path fill-rule="evenodd" d="M15 4H9v16h6V4Zm2 16h3a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3v16ZM4 4h3v16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" clip-rule="evenodd"/>
+                        </svg>
+                       <span class="ml-3">Kanban Board</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'gantt_chart' %}"
+                       class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'gantt' in request.path %}active{% endif %}"
+                    >
+                        <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
+                        </svg>
+                       <span class="ml-3">Gantt Chart</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'reports' %}" class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'reports' in request.path %}active{% endif %}"
+                    >
+                        <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <path fill-rule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-7ZM8 16a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1Zm1-5a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H9Z" clip-rule="evenodd"/>
+                        </svg>
+                       <span class="ml-3">Reports</span>
+                    </a>
+                </li>
+        </ul>
+        </div>
+    </aside>
+
+
+
+      <!-- Main Content -->
+      <main class="p-4 md:ml-64 h-auto pt-20">
+        {% block content %}
+        {% endblock %}
+      </main>
+   
+    <dialog id="logout_modal" class="modal">
+        <div class="modal-box">
+
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+
+            <h3 class="text-lg font-bold">Confirm Logout</h3>
+            <p class="py-4">Are you sure you want to log out?</p>
+
+            <div class="modal-action">
+                <button class="btn" onclick="logout_modal.close()">Cancel</button>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-error">Logout</button>
+                </form>
+            </div>
+        </div>
+    </dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 </body>
 </html>

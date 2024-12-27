@@ -7,13 +7,20 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register, name='register'),
-    path('members/create/', views.create_member, name='create_member'),
-    path('get-member-projects/<int:member_id>/', views.get_member_projects, name='get_member_projects'),
-    path('complete-profile/', views.complete_profile, name='complete_profile'),
+    
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
     path('my-profile/', views.my_profile, name='my_profile'),
-    path('members/', views.members_list, name='members_list'),
     path('upload-photo/', views.upload_photo, name='upload_photo'),
     path('delete-user/', views.delete_user, name='delete_user'),
+    
+    path('superadmin-login/', views.SuperAdminLoginView.as_view(), name='superadmin_login'),
+    path('staff-patient-login/', views.StaffPatientLoginView.as_view(), name='staff_patient_login'),
+    
+    path('register-superadmin/', views.register_superadmin, name='register_superadmin'),
+    
+    path('create-staff/', views.create_staff, name='create_staff'),
+    path('create-patient/', views.create_patient, name='create_patient'),
 
     # newly added path
     path('forgot-password/', views.forgot_password, name='forgot_password'),

@@ -1,20 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db import IntegrityError
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash, logout, authenticate, login
 from django.contrib import messages
 from django.urls import reverse
 
-from .forms import CustomUserCreationForm, MemberCreationForm, MemberProfileForm, UserUpdateForm, PasswordChangeForm, \
-    CustomAuthenticationForm, ForgotPasswordForm, ResetPasswordForm, AssignProjectsForm
+from .forms import CustomUserCreationForm, UserUpdateForm, PasswordChangeForm,CustomAuthenticationForm, ForgotPasswordForm, ResetPasswordForm, StaffCreationForm, PatientCreationForm, SuperAdminCreationForm
 from .models import CustomUser
 from projects.models import Project, ProjectMember, Notification
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.decorators import user_passes_test
+
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -49,116 +50,77 @@ def register(request):
         form = CustomUserCreationForm()
     return render(request, 'users/register.html', {'form': form})
 
+class SuperAdminLoginView(LoginView):
+    template_name = 'accounts/superadmin_login.html'
+
+class StaffPatientLoginView(LoginView):
+    template_name = 'accounts/staff_patient_login.html'
+
+@login_required
+def create_staff(request):
+    if not request.user.is_superuser:
+        return redirect('home')
+
+    if request.method == 'POST':
+        user_form = CustomUserCreationForm(request.POST, request.FILES)
+        staff_form = StaffCreationForm(request.POST)
+        if user_form.is_valid() and staff_form.is_valid():
+            user = user_form.save(commit=False)
+            user.is_staff = True
+            user.save()
+            staff = staff_form.save(commit=False)
+            staff.user = user
+            staff.save()
+            return redirect('staff_list')
+    else:
+        user_form = CustomUserCreationForm()
+        staff_form = StaffCreationForm()
+
+    return render(request, 'accounts/create_staff.html', {'user_form': user_form, 'staff_form': staff_form})
+
+@login_required
+def create_patient(request):
+    if not request.user.is_staff:
+        return redirect('home')
+
+    if request.method == 'POST':
+        user_form = CustomUserCreationForm(request.POST, request.FILES)
+        patient_form = PatientCreationForm(request.POST)
+        if user_form.is_valid() and patient_form.is_valid():
+            user = user_form.save()
+            patient = patient_form.save(commit=False)
+            patient.user = user
+            patient.save()
+            return redirect('patient_list')
+    else:
+        user_form = CustomUserCreationForm()
+        patient_form = PatientCreationForm()
+
+    return render(request, 'accounts/create_patient.html', {'user_form': user_form, 'patient_form': patient_form})
+
+def is_superadmin(user):
+    return user.is_superuser
+
+@user_passes_test(is_superadmin, login_url='/accounts/staff-patient-login/')
+def register_superadmin(request):
+    if request.method == 'POST':
+        form = SuperAdminCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_superuser = True
+            user.is_staff = True
+            user.save()
+            return redirect('superadmin_login')
+    else:
+        form = SuperAdminCreationForm()
+
+    return render(request, 'accounts/register_superadmin.html', {'form': form})
+
 
 @login_required
 def project_list(request):
     user_projects = Project.objects.filter(owner=request.user) if request.user.role == 'manager' else []
     return render(request, 'projects/project_list.html', {'projects': user_projects})
-
-@login_required
-def create_member(request):
-    # Ensure the user is a project manager
-    if request.user.role != CustomUser.MANAGER:
-        return redirect('dashboard')
-
-    # Fetch the current project
-    project_id = request.session.get('current_project_id')
-    if not project_id:
-        return HttpResponseForbidden("No project selected.")
-
-    try:
-        project = get_object_or_404(Project, id=project_id, owner=request.user)
-    except ValueError:
-        messages.error(request, "Invalid project ID.", extra_tags="alert-error")
-        return redirect('dashboard')
-
-    # Initialize forms
-    member_form = MemberCreationForm()
-    assign_form = AssignProjectsForm()
-
-    # Process POST requests
-    if request.method == 'POST':
-        if 'btnform1' in request.POST:  # Member Creation Form
-            member_form = MemberCreationForm(request.POST, request.FILES)
-            if member_form.is_valid():
-                member = member_form.save(commit=False)
-                member.role = CustomUser.MEMBER
-                member.set_password(member_form.cleaned_data['password'])
-                try:
-                    member.save()
-                    ProjectMember.objects.create(project=project, user=member)
-
-                    Notification.objects.create(
-                        user=member,
-                        actor=request.user,
-                        message=f"{request.user.get_full_name()} added you to the project '{project.name}'."
-                    )
-                    messages.success(request, "Member created successfully!", extra_tags="alert-success")
-                    return redirect('create_member')
-                except IntegrityError:
-                    messages.error(request, "A user with this email already exists.", extra_tags="alert-error")
-            else:
-                messages.error(request, "Failed to create the member. Please check the form.", extra_tags="alert-error")
-
-        elif 'btnform2' in request.POST:  # Assign Projects Form
-            assign_form = AssignProjectsForm(request.POST)
-            if assign_form.is_valid():
-                user_id = request.POST.get('user_id')
-                member = get_object_or_404(CustomUser, id=user_id)
-                projects = assign_form.cleaned_data['assigned_projects']
-                current_projects = set(member.assigned_projects.all())
-                new_projects = set(projects) - current_projects
-                member.assigned_projects.set(projects)
-
-                for project in new_projects:
-                    Notification.objects.create(
-                        user=member,
-                        actor=request.user,
-                        message=f"{request.user.get_full_name()} has assigned you to the project '{project.name}'."
-                    )
-                messages.success(request, f"Projects assigned to {member.username} successfully!",
-                                 extra_tags="alert-success")
-                return redirect('create_member')
-            else:
-                messages.error(request, "Failed to assign projects. Please check the form.", extra_tags="alert-error")
-
-    # Fetch existing members and projects
-    members = CustomUser.objects.filter(role=CustomUser.MEMBER, tasks__project=project).distinct()
-    user_projects = Project.objects.filter(owner=request.user) if request.user.role == CustomUser.MANAGER else []
-
-    # Render the page with forms and context
-    return render(request, 'users/create_member.html', {
-        'member_form': member_form,
-        'assign_form': assign_form,
-        'members': members,
-        'projects': user_projects,
-    })
-
-
-@login_required
-def get_member_projects(request, member_id):
-    # Ensure only managers can access this
-    if request.user.role != CustomUser.MANAGER:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-
-    # Fetch the member and their assigned projects
-    member = get_object_or_404(CustomUser, id=member_id)
-    assigned_projects = member.assigned_projects.values_list('id', flat=True)
-
-    return JsonResponse({'assigned_projects': list(assigned_projects)})
-
-@login_required
-def complete_profile(request):
-    if request.method == 'POST':
-        form = MemberProfileForm(request.POST, instance=request.user)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-            return redirect('dashboard') 
-    else:
-        form = MemberProfileForm(instance=request.user)
-    return render(request, 'users/complete_profile.html', {'form': form})
 
 @login_required
 def upload_photo(request):
@@ -221,12 +183,6 @@ def my_profile(request):
         "password_form": password_form,
     }
     return render(request, "users/my_profile.html", context)
-
-
-@login_required
-def members_list(request):
-    members = CustomUser.objects.filter(role=CustomUser.MEMBER)
-    return render(request, 'users/members_list.html', {'members': members})
 
 
 def logout_view(request):
@@ -336,3 +292,7 @@ def reset_password(request, uidb64, token):
 
 #     return render(request, 'users/reset_password.html', {'form': form})
 
+@login_required
+def dashboard(request):
+   
+    return render(request, 'clinic/dashboard.html', )

@@ -12,10 +12,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = 'clinic.CustomUser'
 
-LOGIN_REDIRECT_URL = '/projects/dashboard/'
-LOGIN_URL = 'users/login/'
+LOGIN_REDIRECT_URL = '/clinic/dashboard/'
+LOGIN_URL = 'clinic/login/'
 
 
 # Application definition
@@ -29,8 +29,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     "crispy_tailwind",
     'widget_tweaks',
-    'users',
     'projects',
+    'clinic'
 ]
 
 LOGGING = {
@@ -64,7 +64,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middleware.FirstTimeLoginMiddleware',
+    # 'clinic.middleware.FirstTimeLoginMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -80,8 +80,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'projects.context_processors.user_projects',
-                'projects.context_processors.global_forms',
                 'projects.context_processors.global_notifications',
             ],
         },

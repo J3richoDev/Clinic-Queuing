@@ -2,7 +2,6 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import Project
 from .models import Task, TaskFile, TaskComment, Sprint
-from users.models import CustomUser
 
 class ProjectForm(forms.ModelForm):
     class Meta:
@@ -10,9 +9,6 @@ class ProjectForm(forms.ModelForm):
         fields = ['name', 'emoji_icon', 'description', 'color']
         widgets = {
         }
-
-class AddMemberForm(forms.Form):
-    member = forms.ModelChoiceField(queryset=CustomUser.objects.filter(role='member'), required=True)
 
 class SprintForm(forms.ModelForm):
     class Meta:
@@ -71,7 +67,6 @@ class TaskForm(forms.ModelForm):
         if project_id:
             # Filter sprints by the project_id
             self.fields['sprint'].queryset = Sprint.objects.filter(project_id=project_id)
-            self.fields['assigned_members'].queryset = CustomUser.objects.filter(assigned_projects=project_id)
 
 class TaskCommentForm(forms.ModelForm):
     class Meta:
@@ -82,16 +77,3 @@ class TaskFileForm(forms.ModelForm):
     class Meta:
         model = TaskFile
         fields = ['file']
-
-class MemberCreationForm(forms.ModelForm):
-    class Meta:
-        model = CustomUser
-        fields = ['email','username', 'password']
-        widgets = {
-            'password': forms.PasswordInput(),
-        }
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if CustomUser.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        return email

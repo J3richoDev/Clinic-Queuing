@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.forms import SetPasswordForm
-from .models import CustomUser
+from .models import CustomUser, Staff, Patient
 from django import forms
 from projects.models import Project
 
@@ -35,40 +35,26 @@ class CustomAuthenticationForm(AuthenticationForm):
 
         return username
 
+class SuperAdminCreationForm(UserCreationForm):
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'username', 'profile_picture', 'password1', 'password2']
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['email', 'username', 'first_name', 'last_name', 'password1', 'password2']
 
-class MemberCreationForm(forms.ModelForm):
+class StaffCreationForm(forms.ModelForm):
     class Meta:
-        model = CustomUser
-        fields = ['email','username', 'password']
-        widgets = {
-            'password': forms.PasswordInput(),
-        }
+        model = Staff
+        fields = ['role']
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if CustomUser.objects.filter(email=email).exists():
-            raise forms.ValidationError("A user with this email already exists.")
-        return email
-
-class AssignProjectsForm(forms.Form):
-    assigned_projects = forms.ModelMultipleChoiceField(
-        queryset=Project.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        required=False
-    )
-    
-class MemberProfileForm(forms.ModelForm):
+class PatientCreationForm(forms.ModelForm):
     class Meta:
-        model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'password']
-        widgets = {
-            'password': forms.PasswordInput(),
-        }
+        model = Patient
+        fields = ['medical_history']
+
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
@@ -82,6 +68,7 @@ class UserUpdateForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': 'input-class-old w-2/3 border rounded px-3 py-2'}),
             'profile_picture': forms.FileInput(attrs={'class': 'input-class-old w-2/3 border rounded px-3 py-2'}),
         }
+        role = forms.CharField() 
 
         def clean_profile_picture(self):
             picture = self.cleaned_data.get('profile_picture')
