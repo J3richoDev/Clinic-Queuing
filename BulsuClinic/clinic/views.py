@@ -204,5 +204,7 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-   
+    if request.user.is_superuser:
+        return redirect('manage_staff')
+        
     return render(request, 'clinic/dashboard.html', )

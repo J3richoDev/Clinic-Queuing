@@ -1,0 +1,497 @@
+{% extends 'project_base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+  .progress-bar {
+      width: 100%;
+      background-color: #f3f3f3;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+  }
+  .progress-bar-fill {
+      height: 25px;
+      background-color: #4CAF50;
+      text-align: center;
+      color: white;
+      line-height: 25px;
+  }
+</style>
+<div class="flex justify-between mb-4">
+    <h1 class="text-2xl font-bold mb-4">Welcome, {{ request.user.first_name }}!</h1>
+</div>
+
+<div class="grid lg:grid-cols-4 mt-2 md:grid-cols-2 grid-cols-1 gap-6">
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">Todo</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{todo_percentage}}%</div>
+         <div class="stat-desc text-sm">total count: {{todo_total}}</div>
+      </div>
+   </div>
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">In Progress</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{in_progress_percentage}}%</div>
+         <div class="stat-desc  ">total count: {{in_progress_total}}</div>
+      </div>
+   </div>
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">Under Review</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{review_percentage}}%</div>
+         <div class="stat-desc  ">total count: {{review_total}}</div>
+      </div>
+   </div>
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">Completed</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{completed_percentage}}%</div>
+         <div class="stat-desc">total count: {{completed_total}}</div>
+      </div>
+   </div>
+</div>
+
+<div class="grid lg:grid-cols-2 mt-4 grid-cols-1 gap-6">
+   <div class="card w-full p-6 bg-base-100 shadow-xl mt-6">
+      <div class="text-xl font-semibold ">Task to be done</div>
+      <div class="divider mt-2"></div>
+      <div class="h-full w-full pb-6 bg-base-100">
+        <canvas id="priorityBarChart"></canvas>
+      </div>
+   </div>
+   <div class="card w-full p-6 bg-base-100 shadow-xl mt-6">
+      <div class="text-xl font-semibold ">Project Progress</div>
+      <div class="divider mt-2"></div>
+      <div class="h-full w-full pb-6 bg-base-100">
+        <div id="PieChartContainer" height="422" width="422" style="display: block; box-sizing: border-box; height: 422px; width: 422px;"></div>
+      </div>
+   </div>
+</div>
+
+<div class="card w-full p-6 bg-base-100 shadow-xl mt-6">
+  <div class="flex justify-between">
+    <div class="text-xl font-semibold ">Gantt Chart</div>
+    <h1 class="text-2xl font-bold mb-4">{{ project.name }}</h1>
+  </div>
+    <div class="divider mt-2"></div>
+    <div class="h-full w-full pb-6 bg-base-100">
+      <div class="container mx-auto">
+        <div class="flex flex-row items-center justify-between">
+       
+    
+            <div class="flex flex-row justify-end gap-3">
+            <!-- Filters -->
+                <div class="mb-4">
+                    <label for="filterStatus" class="block text-sm font-medium">Filter by Status:</label>
+                    <select id="filterStatus" class="border rounded-md p-2">
+                        <option value="all">All</option>
+                        <option class="text-gray-600" value="todo">To Do</option>
+                        <option class="text-sky-600" value="in_progress">In Progress</option>
+                        <option class="text-amber-600" value="review">Review</option>
+                        <option class="text-green-600" value="completed">Completed</option>
+                    </select>
+                </div>
+    
+                <div class="mb-4">
+                    <label class="block text-sm font-medium">Filter by Time:</label>
+                    <button id="filterToday" class="bg-blue-500 text-white rounded p-2 mr-2">Today</button>
+                    <button id="filterWeek" class="bg-blue-500 text-white rounded p-2  mr-2">This Week</button>
+                    <button id="filterMonth" class="bg-blue-500 text-white rounded p-2  mr-2">This Month</button>
+                    <button id="filterQuarter" class="bg-blue-500 text-white  p-2 rounded">This Quarter</button>
+                </div>
+            </div>
+        </div>
+        <!-- Gantt Chart Container -->
+        <div id="ganttChartContainer" class="bg-white p-4 rounded-lg shadow-lg mb-5"></div>      </div>
+        </div>
+ </div>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        var bar_options = {
+          series: [{
+          name: 'Net Profit',
+          data: [44, 55, 57, 56, 61, 58, 63, 60, 66]
+        }, {
+          name: 'Revenue',
+          data: [76, 85, 101, 98, 87, 105, 91, 114, 94]
+        }, {
+          name: 'Free Cash Flow',
+          data: [35, 41, 36, 26, 45, 48, 52, 53, 41]
+        }],
+          chart: {
+          type: 'bar',
+          height: 350
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            borderRadius: 5,
+            borderRadiusApplication: 'end'
+          },
+        },
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          show: true,
+          width: 2,
+          colors: ['transparent']
+        },
+        xaxis: {
+          categories: ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+        },
+        yaxis: {
+          title: {
+            text: '$ (thousands)'
+          }
+        },
+        fill: {
+          opacity: 1
+        },
+        tooltip: {
+          y: {
+            formatter: function (val) {
+              return "$ " + val + " thousands"
+            }
+          }
+        }
+        };
+        const BarChart = new ApexCharts(
+            document.querySelector("#BarChartContainer"),
+            bar_options
+        );
+        BarChart.render();
+
+    });
+</script>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+
+      var line_options = {
+        series: [{
+          name: 'XYZ MOTORS',
+          data: [
+            [Date.parse('2020-01-01'), 10],
+            [Date.parse('2020-02-01'), 5],
+            [Date.parse('2020-03-01'), 6],
+            [Date.parse('2020-04-01'), 12],
+            [Date.parse('2020-05-01'), 4],
+          ]
+        }],
+        chart: {
+          type: 'area',
+          stacked: false,
+          height: 350,
+          zoom: {
+            type: 'x',
+            enabled: true,
+            autoScaleYaxis: true
+          },
+          toolbar: {
+            autoSelected: 'zoom'
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        markers: {
+          size: 0,
+        },
+        title: {
+          text: 'Stock Price Movement',
+          align: 'left'
+        },
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shadeIntensity: 1,
+            inverseColors: false,
+            opacityFrom: 0.5,
+            opacityTo: 0,
+            stops: [0, 90, 100]
+          },
+        },
+        yaxis: {
+          labels: {
+            formatter: function (val) {
+              return (val / 1000000).toFixed(0);
+            },
+          },
+          title: {
+            text: 'Price'
+          },
+        },
+        xaxis: {
+          type: 'datetime',
+        },
+        tooltip: {
+          shared: false,
+          y: {
+            formatter: function (val) {
+              return (val / 1000000).toFixed(0)
+            }
+          }
+        }
+      };
+
+      const LineChart = new ApexCharts(
+          document.querySelector("#LineChartContainer"),
+          line_options
+      );
+
+      LineChart.render();
+
+  });
+</script>
+
+
+
+<script>
+  var pieSeriesData = {{ pie_series|safe }};
+
+  var pie_options = {
+       series: pieSeriesData, // Use the data from Django here
+       chart: {
+           type: 'donut',
+       },
+       labels: ['To Do', 'In Progress', 'Review', 'Completed'], // Ensure labels match statuses
+       responsive: [{
+           breakpoint: 480,
+           options: {
+               chart: {
+                   width: 200
+               },
+               legend: {
+                   position: 'bottom'
+               }
+           }
+       }]
+   };
+
+   const PieChart = new ApexCharts(
+       document.querySelector("#PieChartContainer"),
+       pie_options
+   );
+
+   PieChart.render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <script>
+        // Bar Chart
+        var ctxBar = document.getElementById('priorityBarChart').getContext('2d');
+        var barLabels = {{ bar_labels|safe }}; // Priority labels: High, Medium, Low
+        var barData = {{ bar_series|safe }};   // Priority percentages
+
+        var barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{
+                    label: 'Task Priority (%)',
+                    data: barData,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.raw.toFixed(2) + '%';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#000',
+                        align: 'end',
+                        anchor: 'end',
+                        formatter: function(value) {
+                            return value.toFixed(2) + '%';
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+      const tasks = {{ tasks_json|safe }};
+
+      // Define colors for task statuses
+      const statusColors = {
+          todo: '#FF5733', // Red
+          in_progress: '#FFC300', // Yellow
+          review: '#3498DB', // Blue
+          completed: '#28B463', // Green
+      };
+
+      // Transform tasks into ApexCharts series format
+      const series = tasks.map(task => ({
+          name: task.name,
+          data: [
+              {
+                  x: task.name,
+                  y: [
+                      new Date(task.start).getTime(),
+                      new Date(task.end).getTime(),
+                  ],
+                  fillColor: statusColors[task.status], // Apply color by status
+                  description: task.description,
+                  priority: task.priority,
+                  status: task.status,
+              },
+          ],
+      }));
+
+      // ApexCharts options
+      const options = {
+          chart: {
+              height: 500,
+              type: 'rangeBar',
+              zoom: {
+                  enabled: true,
+                  type: 'x', // Enable horizontal zooming
+              },
+              toolbar: {
+                  tools: {
+                      zoom: true,
+                      zoomin: true,
+                      zoomout: true,
+                      pan: true,
+                      reset: true,
+                  },
+              },
+          },
+          plotOptions: {
+              bar: {
+                  distributed: true,
+                  horizontal: true,
+                  barHeight: '50%',
+              },
+          },
+          series: series,
+          xaxis: {
+              type: 'datetime',
+          },
+          tooltip: {
+              x: {
+                  format: 'dd MMM yyyy',
+              },
+          },
+      };
+
+      const chart = new ApexCharts(
+          document.querySelector("#ganttChartContainer"),
+          options
+      );
+
+      chart.render();
+
+      // Filter functionality
+      const filterStatus = document.getElementById("filterStatus");
+      filterStatus.addEventListener("change", (event) => {
+          const selectedStatus = event.target.value;
+
+          const filteredSeries = selectedStatus === "all"
+              ? series
+              : series.filter(task => task.data[0].status === selectedStatus);
+
+          chart.updateSeries(filteredSeries);
+      });
+
+       // Time Filtering Logic
+      const filterTasksByTime = (range) => {
+          const now = new Date();
+          const startOfRange = new Date();
+          let endOfRange = new Date();
+
+          switch (range) {
+              case "today":
+                  startOfRange.setHours(0, 0, 0, 0);
+                  endOfRange.setHours(23, 59, 59, 999);
+                  break;
+              case "week":
+                  const dayOfWeek = now.getDay();
+                  startOfRange.setDate(now.getDate() - dayOfWeek);
+                  endOfRange.setDate(now.getDate() + (6 - dayOfWeek));
+                  break;
+              case "month":
+                  startOfRange.setDate(1);
+                  endOfRange = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                  break;
+              case "quarter":
+                  const currentMonth = now.getMonth();
+                  const quarterStart = Math.floor(currentMonth / 3) * 3;
+                  startOfRange.setMonth(quarterStart, 1);
+                  endOfRange = new Date(now.getFullYear(), quarterStart + 3, 0);
+                  break;
+              default:
+                  return;
+          }
+
+          const filteredSeries = series.filter(task => {
+              const taskStart = new Date(task.data[0].y[0]);
+              const taskEnd = new Date(task.data[0].y[1]);
+              return taskEnd >= startOfRange && taskStart <= endOfRange;
+          });
+
+          chart.updateSeries(filteredSeries);
+      };
+
+      // Attach Event Listeners for Time Filters
+      document.getElementById("filterToday").addEventListener("click", () => filterTasksByTime("today"));
+      document.getElementById("filterWeek").addEventListener("click", () => filterTasksByTime("week"));
+      document.getElementById("filterMonth").addEventListener("click", () => filterTasksByTime("month"));
+      document.getElementById("filterQuarter").addEventListener("click", () => filterTasksByTime("quarter"));
+
+  });
+
+</script>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends 'project_base.html' %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+{% load custom_filters %}
+
+{% block title %}Task Detail: {{ task.name }}{% endblock %}
+{% block heading %}Member Task Detail{% endblock %}
+
+{% block content %}
+<style>
+    .status-todo { background-color: rgb(75 85 99); }      /* Yellow */
+    .status-in_progress { background-color: rgb(2 132 199); } /* Blue */
+    .status-review { background-color: rgb(217 119 6); }    /* Orange */
+    .status-completed { background-color: rgb(22 163 74); }  /* Green */
+
+    .priority-high { background-color: #e14040; }     /* Red */
+    .priority-medium { background-color: #f4bd3d; }   /* Amber */
+    .priority-low { background-color: rgb(59 130 246); }      /* Lime */
+</style>
+<div class="">
+    <div class="grid grid-cols-3 gap-4">
+        <div class="col-span-2">
+            <div class="card w-full p-5 bg-base-100 border shadow-sm">
+                <h2
+                    class="text-2xl font-bold mb-4"
+                >
+                    {{ task.name }}
+                </h2>
+                <p class="font-medium">Description</p>
+                <div
+                class="border min-h-32 p-2 rounded mb-4"
+            >
+                  {{ task.description|default_if_none:"No description provided" }}
+              </div>
+                <div>
+                    <h2 class="text-xl font-bold mt-6 mb-2">Attachments</h2>
+                    <div class="grid grid-cols-3 gap-3">
+                        {% for file in files %}
+                            <div class="card bg-base-100 border shadow p-4 rounded mb-2">
+                                {% if file.file.name|is_image %}
+                                <div class="w-full max-h-[100px]">
+                                    <img src="{{ file.file.url }}" alt="Image" class="w-full h-full" />
+                                </div>
+                                {% else %}
+                                <div class="p-10 flex items-center justify-center">
+                                    <svg class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none" viewBox="0 0 24 24">
+                                        <path stroke="currentColor" stroke-linejoin="round" stroke-width="2" d="M10 3v4a1 1 0 0 1-1 1H5m14-4v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7.914a1 1 0 0 1 .293-.707l3.914-3.914A1 1 0 0 1 9.914 3H18a1 1 0 0 1 1 1Z"/>
+                                    </svg>
+                                </div>
+                                {% endif %}
+
+                                <div class="font-medium text-xs flex flex-row mb-1">
+                                    {% with filename=file.file.name|slice:"11:" %}
+                                        {% with truncated_name=filename|slice:":-7"|default:filename %}
+                                            <p class=" truncate max-w-[120px]">{{ truncated_name }}</p>
+                                            <span>{{ filename|slice:"-6:" }}</span>
+                                        {% endwith %}
+                                    {% endwith %}
+                                </div>
+                                <p class="text-xs">Uploaded by {{ file.uploaded_by.username }} on {{ file.uploaded_at }}</p>
+                                <div class="flex flex-row items-center justify-end gap-2 mt-2">
+                                    {% if request.user.role == 'manager' %}
+                                        <form method="POST" action="{% url 'delete_file' file.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-error btn-sm text-white">
+                                                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14m-9 3v8m4-8v8M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1ZM6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7Z"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    <div class="w-full relative">
+                                        <a href="{{ file.file.url }}" class="btn btn-primary btn-sm text-white">
+                                            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-5">
+                        <form method="POST" class="flex flex-col gap-4" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ my_file_form.file|add_class:"file-input w-full max-w-xs" }}
+                            <button type="submit" name="file" class="btn btn-success w-2/12 text-white">Upload File</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-span-1">
+            <div class="card w-full p-5 bg-base-100 border shadow-sm">
+                <p class="font-medium">Status</p>
+                <div>
+                <select
+                    class="editable-select status-{{ task.status }} rounded-lg w-full py-3 text-center font-medium text-base-100"
+                    data-field="status"
+                    data-task-id="{{ task.id }}"
+                    onchange="updateTaskField(this)"
+                >
+                    {% for key, value in task.STATUS_CHOICES %}
+                    <option
+                        value="{{ key }}"
+                        {% if task.status == key %}selected{% endif %}
+                        class="py-2 font-medium bg-white text-gray-800"
+                    >
+                        {{ value }}
+                    </option>
+                    {% endfor %}
+                </select>
+              </div>
+                <p class="font-medium mt-2">Priority</p>
+              <div>
+                 <div
+                    class="priority-{{ task.priority }} rounded-lg w-full py-3 text-center font-medium text-base-100"
+                >
+                   {{ task.priority }}
+                </div>
+              </div>
+                <p class="font-medium mt-2">Sprint</p>
+                    <div class=" w-full py-3 text-center font-medium border border-gray-300 bg-base-200 rounded-lg">
+                        {{task.sprint}}
+                    </div>
+
+                <p class="font-medium mt-2">Assigned Members</p>
+                <div class="w-full py-3 text-center font-medium border border-gray-300 bg-base-200 rounded-lg">
+                    {% if task.assigned_members.all %}
+                        {{ task.assigned_members.all|join:", " }}
+                    {% else %}
+                        None
+                    {% endif %}
+                </div>
+                <p class="font-medium mt-2">End Date</p>
+                <td>
+                    <div class="border text-center text-lg py-2 rounded-lg p-1">
+                        {{ task.end_date|date:'Y-m-d' }}
+                    </div>
+                </td>
+                <p class="font-medium mt-2">Start Date</p>
+              <td>
+                  <div class="border text-center text-lg py-2 rounded-lg p-1">
+                      {{ task.start_date|date:'Y-m-d' }}
+                  </div>
+              </td>
+                <p class="font-medium mt-2">Created at</p>
+              <td><p class=" border border-gray-300 text-center text-lg py-2 rounded-lg p-1">
+                  {{ task.created_at }}
+                </p>
+              </td>
+            </div>
+        </div>
+        <div class="col-span-2 card w-full p-5 bg-base-100 border shadow-sm">
+                    <h2 class="text-xl font-bold mb-3">Comments</h2>
+                    <ul class="max-h-96 overflow-y-auto bg-base-200 rounded-md">
+                        {% for comment in comments %}
+                            <li class="chat {% if comment.author == request.user %}chat-end{% else %}chat-start{% endif %}">
+                                  <div class="chat-header">
+                                    {{ comment.author.username }}
+                                  </div>
+                                  <div class="chat-bubble">{{ comment.content }}</div>
+                                <div class="chat-footer opacity-50">{{ comment.created_at }}</div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                       <div class="mb-10 mt-3">
+                            <form method="POST">
+                            {% csrf_token %}
+                            <div class="flex gap-5">
+                                {{ my_comment_form.content|add_class:"input input-bordered w-full p-2"|attr:"placeholder:Type your message" }}
+                                    <button type="submit" name="comment" class="btn btn-primary text-white transform rotate-90 flex items-center px-2 justify-center">
+                                        <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 18-7 3 7-18 7 18-7-3Zm0 0v-5"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                       </div>
+                </div>
+    </div>
+</div>
+<script>
+    async function updateTaskField(element) {
+        const taskId = element.dataset.taskId;
+        const field = element.dataset.field;
+        const value = element.value || element.textContent.trim();
+
+        if (!taskId || !field) {
+            console.error("Missing task ID or field.");
+            return;
+        }
+
+         try {
+            const response = await fetch("{% url 'update_task_field' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ task_id: taskId, field, value }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update the dropdown class dynamically
+                if (field === 'status') {
+                    element.className = `editable-select status-${value} rounded-lg w-full py-3 text-center font-medium text-base-100`;
+                } else if (field === 'priority') {
+                    element.className = `editable-select priority-${value} rounded-lg w-full py-3 text-center font-medium text-base-100`;
+                }
+                console.log(`${field} updated successfully!`);
+                location.reload();
+            } else {
+                console.error(`Failed to update ${field}:`, data.error);
+                location.reload();
+            }
+        } catch (err) {
+            console.error("Error updating task field:", err);
+            location.reload();
+        }
+    }
+
+</script>
+
+{% endblock %}

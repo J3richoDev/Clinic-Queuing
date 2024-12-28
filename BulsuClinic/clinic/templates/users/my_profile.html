@@ -1,4 +1,4 @@
-{% extends 'project_base.html' %}
+{% extends 'base.html' %}
 {% block content %}
 <div class="max-w-full mx-0 my-4 p-5 font-roboto bg-white shadow-md rounded-lg">
 
@@ -173,7 +173,7 @@
         const formData = new FormData();
         formData.append('profile_picture', input.files[0]);
 
-        fetch('/users/upload-photo/', {
+        fetch('/clinic/upload-photo/', {
             method: 'POST',
             body: formData,
             headers: {
