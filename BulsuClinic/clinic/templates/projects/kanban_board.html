@@ -1,0 +1,120 @@
+{% extends 'project_base.html' %}
+{% load custom_filters %}
+
+{% block title %}Kanban Board - {{ project.name }}{% endblock %}
+{% block heading %}Kanban Board{% endblock %}
+
+{% block content %}
+<div class="flex flex-row justify-between mb-4">
+    <h1 class="text-2xl font-bold">{{ project.name }}</h1>
+    <h2 class="text-lg font-medium">Sprint : {{ current_sprint}}</h2>
+</div>
+
+{% if current_sprint %}
+
+<div id="kanban-board" class="grid grid-cols-4 gap-2">
+    {% for status, tasks in tasks_by_status.items %}
+        <div class="card w-full p-3 bg-base-100 shadow-sm border min-h-screen ">
+            <div class="kanban-column flex flex-col h-full" data-status="{{ status }}">
+                <h2 class="text-xl font-bold capitalize text-center mt-1 {% if status == 'todo' %}text-base{% elif status == 'in_progress' %}text-sky-600{% elif status == 'review' %}text-amber-600{% elif status == 'completed' %}text-green-600{% endif %}">
+                    {{ status|replace_underscore }}
+                </h2>
+                <div class="border my-4 {% if status == 'todo' %}border-gray-500{% elif status == 'in_progress' %}border-sky-600{% elif status == 'review' %}border-amber-600{% elif status == 'completed' %}border-green-600{% endif %}"></div>
+                <div class="h-full">
+                    <div class="kanban-tasks space-y-2">
+                        {% for task in tasks %}
+                            <div class="kanban-task card w-full bg-base-100 shadow-sm border cursor-pointer overflow-hidden"
+                                 data-task-id="{{ task.id }}">
+                                <div class="file-item w-full max-h-32 overflow-hidden">
+                                    {% for file in task.files.all %}
+                                        {% if file.file.name|is_image %}
+                                            {% if forloop.counter == 1 %}
+                                                <img src="{{ file.file.url }}" alt="{{ file.file.name }}" class="file-preview">
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class=" p-5 ">
+                                    <p class="font-medium">{{ task.name }}</p>
+                                    <p class="text-sm">{{ task.description|truncatewords:10 }}</p>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-gray-500 text-center italic">No tasks</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% else %}
+  <p class="text-center">There is no active sprint.</p>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const kanbanColumns = document.querySelectorAll('.kanban-column');
+
+        // Add dragover and drop listeners to each column
+        kanbanColumns.forEach(column => {
+            column.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                column.classList.add('bg-blue-100'); // Highlight column during drag
+            });
+
+            column.addEventListener('dragleave', () => {
+                column.classList.remove('bg-blue-100'); // Remove highlight
+            });
+
+            column.addEventListener('drop', async (event) => {
+                event.preventDefault();
+                column.classList.remove('bg-blue-100');
+
+                const taskId = event.dataTransfer.getData('task-id');
+                const newStatus = column.dataset.status;
+
+                if (taskId) {
+                    const response = await fetch("{% url 'update_task_status' %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                        },
+                        body: new URLSearchParams({
+                            'task_id': taskId,
+                            'new_status': newStatus,
+                        }),
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        location.reload(); // Reload page to reflect the update
+                    } else {
+                        alert('Failed to update task status');
+                    }
+                }
+            });
+        });
+
+        // Make tasks draggable
+        const kanbanTasks = document.querySelectorAll('.kanban-task');
+        kanbanTasks.forEach(task => {
+            task.draggable = true;
+
+            task.addEventListener('dragstart', (event) => {
+                event.dataTransfer.setData('task-id', task.dataset.taskId);
+            });
+
+             // Navigate to the task detail page on click
+             task.addEventListener('click', () => {
+                const taskId = task.dataset.taskId;
+                if (taskId) {
+                    const taskDetailUrl = `{% url 'task_detail' 0 %}`.replace('/0/', `/${taskId}/`);
+                    window.location.href = taskDetailUrl;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,297 @@
+{% extends 'project_base.html' %}
+{% load static %}
+{% block title %}Reports{% endblock %}
+{% block heading %}Reports{% endblock %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/src/dom-to-image.min.js"></script>
+
+<style>
+   .progress-bar {
+       width: 100%;
+       background-color: #f3f3f3;
+       border: 1px solid #ccc;
+       border-radius: 4px;
+       overflow: hidden;
+       margin-bottom: 10px;
+   }
+   .progress-bar-fill {
+       height: 25px;
+       background-color: #4CAF50;
+       text-align: center;
+       color: white;
+       line-height: 25px;
+   }
+</style>
+<div class="grid lg:grid-cols-4 mt-2 md:grid-cols-2 grid-cols-1 gap-6">
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">Todo</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{todo_percentage}}%</div>
+         <div class="stat-desc text-sm">total count: {{todo_total}}</div>
+      </div>
+   </div>
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">In Progress</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{in_progress_percentage}}%</div>
+         <div class="stat-desc  ">total count: {{in_progress_total}}</div>
+      </div>
+   </div>
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">Under Review</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{review_percentage}}%</div>
+         <div class="stat-desc  ">total count: {{review_percentage}}</div>
+      </div>
+   </div>
+   <div class="stats shadow">
+      <div class="stat">
+         <div class="stat-figure night:text-slate-300 text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" class="w-8 h-8">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"></path>
+            </svg>
+         </div>
+         <div class="stat-title font-bold text-xl night:text-slate-300">Completed</div>
+         <div class="stat-value night:text-slate-300 text-primary">{{completed_percentage}}%</div>
+         <div class="stat-desc">total count: {{completed_total}}</div>
+      </div>
+   </div>
+</div>
+
+<div class="grid lg:grid-cols-2 mt-4 grid-cols-1 gap-6">
+   <div class="card w-full p-6 bg-base-100 shadow-xl mt-6">
+      <div class="text-xl font-semibold ">Project Progress</div>
+      <div class="divider mt-2"></div>
+      <div class="h-full w-full bg-base-100">
+         <div id="PieChartContainer" height="422" width="422" style="display: block; box-sizing: border-box; height: 422px; width: 422px;"></div>
+         <!--<ul>
+               {% for data in members_data %}
+                  <li>
+                     <strong>{{ data.member.username }}</strong> 
+                     <div class="progress-bar">
+                           <div class="progress-bar-fill" style="width: {{ data.average_progress }}%">
+                              {{ data.average_progress }}%
+                           </div>
+                  </li>
+               {% endfor %}
+         </ul>-->
+            </div>
+   </div>
+   <div class="card w-full p-6 bg-base-100 shadow-xl mt-6">
+      <div class="text-xl font-semibold ">Task Priority</div>
+      <div class="divider mt-2"></div>
+      <div class="h-full w-full pb-6 bg-base-100">
+         <canvas id="priorityBarChart"></canvas>
+      </div>
+   </div>
+</div>
+   
+
+   <div class="card w-full p-6 bg-base-100 shadow-xl mt-6 mb-5">
+      <div class="flex justify-between items-center">
+         <div class="text-xl font-semibold">Task to be done</div>
+         <div class="flex space-x-2">
+            <a href="{% url 'venue_pdf' %}" class="btn btn-outline btn-sm">Download PDF</a>
+            <button id="download-svg" class="btn btn-outline btn-sm">Download SVG</button>
+            <button id="download-csv" class="btn btn-outline btn-sm">Download CSV</button>
+         </div>
+     </div>
+     
+      <div class="divider mt-2"></div>
+      <div class="h-full w-full pb-6 bg-base-100">
+         <div class="overflow-x-auto">
+         <div class="table-container">
+            <table class="table w-full" id="to-download">
+                  <thead>
+                     <tr>
+                        <th colspan="20"> 
+                           <strong>
+                              Total Members: {{ member_count }}
+                           </strong>
+                        </th>
+                    </tr>
+                    <tr>
+                          <th>Profile</th>
+                          <th >Username</th>
+                          <th><div class="me-12">Member Progress</div></th>
+                          <th><div class="ms-10">Tasks</div></th>
+                          <th>Joined On</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for viewMem in members_data %}
+                      <tr>
+                          <td>
+                              <div class="w-10 rounded-full">
+                                 
+                                 <img src="{% if viewMem.member.profile_picture %}/media/{{ viewMem.member.profile_picture }}{% else %}{% static 'default-profile.png' %}{% endif %}" alt="Profile">
+                              </div>
+                           </td>
+                           <td><strong>{{ viewMem.member.username }}</strong></td>
+                           <td>
+                              <div class="progress-bar">
+                                 <div class="progress-bar-fill me-5" style="width: {{ viewMem.average_progress }}%;">
+                                    {{ viewMem.average_progress }}%
+                                 </div>
+                              </div>
+                           </td>
+                          <td class="badge badge-outline mt-4 ms-10 px-8">{{ viewMem.task_count }} tasks</td>
+                          <td>{{ viewMem.member.date_joined|date:"d M Y" }}</td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                          <td colspan="4" class="text-center">No members found</td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+         </div>
+         </div>
+      </div>
+      
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+   var pieSeriesData = {{ pie_series|safe }};
+
+   var pie_options = {
+        series: pieSeriesData, // Use the data from Django here
+        chart: {
+            type: 'donut',
+        },
+        labels: ['To Do', 'In Progress', 'Review', 'Completed'], // Ensure labels match statuses
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 200
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }]
+    };
+
+    const PieChart = new ApexCharts(
+        document.querySelector("#PieChartContainer"),
+        pie_options
+    );
+
+    PieChart.render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+        var ctxBar = document.getElementById('priorityBarChart').getContext('2d');
+        var barLabels = {{ bar_labels|safe }}; // Priority labels: High, Medium, Low
+        var barData = {{ bar_series|safe }};   // Priority percentages
+
+        var barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{
+                    label: 'Task Priority (%)',
+                    data: barData,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return tooltipItem.raw.toFixed(2) + '%';
+                            }
+                        }
+                    },
+                    datalabels: {
+                        display: true,
+                        color: '#000',
+                        align: 'end',
+                        anchor: 'end',
+                        formatter: function(value) {
+                            return value.toFixed(2) + '%';
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+</script>
+
+<script>
+   document.getElementById("download-csv").addEventListener("click", function () {
+      const rows = document.querySelectorAll("table tr");
+      let csvContent = "";
+    
+   rows.forEach(row => {
+        const cells = row.querySelectorAll("th, td");
+        const rowContent = Array.from(cells).map(cell => `"${cell.innerText.trim()}"`).join(",");
+        csvContent += rowContent + "\n";
+   });
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "task-to-be-done.csv";
+    link.click();
+   });
+
+      
+
+      // Function to download SVG
+      document.getElementById('download-svg').addEventListener('click', function () {
+         const tableContainer = document.querySelector('#to-download');
+         const svg = `
+               <svg xmlns="http://www.w3.org/2000/svg" width="${tableContainer.offsetWidth}" height="${tableContainer.offsetHeight}">
+                  <foreignObject width="100%" height="100%">
+                     ${new XMLSerializer().serializeToString(tableContainer)}
+                  </foreignObject>
+               </svg>`;
+         
+         const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+         const link = document.createElement('a');
+         link.download = 'table.svg';
+         link.href = URL.createObjectURL(svgBlob);
+         link.click();
+      });
+
+</script>
+
+
+{% endblock %}
