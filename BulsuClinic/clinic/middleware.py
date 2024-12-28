@@ -9,6 +9,6 @@ class RoleMiddleware:
     def __call__(self, request):
         # if request.user.is_authenticated:
         #     if request.user.is_superuser:
-        #             return redirect('')
+        #             return redirect('manage_staff')
         return self.get_response(request)
 

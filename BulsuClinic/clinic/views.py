@@ -5,14 +5,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash, logout, authenticate, login
 from django.contrib import messages
 from django.urls import reverse
+from .models import CustomUser
+
 
 from .forms import CustomUserCreationForm, UserUpdateForm, PasswordChangeForm,CustomAuthenticationForm, ForgotPasswordForm, ResetPasswordForm, StaffCreationForm, PatientCreationForm, SuperAdminCreationForm
-from .models import CustomUser
-from projects.models import Project, ProjectMember, Notification
-from django.core.mail import send_mail
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from projects.models import Project
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import user_passes_test
 
@@ -54,12 +51,17 @@ class SuperAdminLoginView(LoginView):
     template_name = 'superadmin/superadmin_login.html'
 
 class StaffPatientLoginView(LoginView):
-    template_name = 'superadmin/staff_patient_login.html'
+    template_name = 'users/login.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = "Staff/Patient Login"
+        return context
 
 @login_required
-def create_staff(request):
+def manage_staff(request):
     if not request.user.is_superuser:
-        return redirect('home')
+        return redirect('dashboard')
 
     if request.method == 'POST':
         user_form = CustomUserCreationForm(request.POST, request.FILES)
@@ -71,12 +73,22 @@ def create_staff(request):
             staff = staff_form.save(commit=False)
             staff.user = user
             staff.save()
-            return redirect('staff_list')
+            return redirect('manage_staff')
     else:
         user_form = CustomUserCreationForm()
         staff_form = StaffCreationForm()
+        
+    staff_list = CustomUser.objects.filter(is_staff=True).order_by('username')
 
-    return render(request, 'accounts/create_staff.html', {'user_form': user_form, 'staff_form': staff_form})
+    return render(
+        request, 
+        'superadmin/manage_staff.html', 
+        {
+            'user_form': user_form,
+            'staff_form': staff_form,
+            'staff_list': staff_list,  # Add the staff list to the context
+        }
+    )
 
 @login_required
 def create_patient(request):
@@ -189,108 +201,6 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-
-# def forgot_password(request):
-#     if request.method == 'POST':
-#         email = request.POST.get('email')
-
-#         if email:
-#             try:
-#                 user = CustomUser.objects.get(email=email)
-
-#                 token = default_token_generator.make_token(user)
-#                 uid = urlsafe_base64_encode(str(user.pk).encode())
-
-#                 reset_url = f"http://{get_current_site(request).domain}/reset-password/{uid}/{token}/"
-
-#                 send_mail(
-#                     "Password Reset Request",
-#                     f"Click the link to reset your password: {reset_url}",
-#                     "no-reply@omnia.com",
-#                     [email],
-#                 )
-
-#                 messages.success(request, "A password reset link has been sent to your email address.")
-#                 return redirect('login')
-#             except CustomUser.DoesNotExist:
-#                 messages.error(request, "No user found with that email address.")
-#         else:
-#             messages.error(request, "Please provide a valid email address.")
-
-#     return render(request, 'users/forgotpass.html')
-def forgot_password(request):
-    if request.method == 'POST':
-        form = ForgotPasswordForm(request.POST)
-        if form.is_valid():
-            email = form.cleaned_data['email']
-            try:
-                user = CustomUser.objects.get(email=email)
-
-                # Generate token and URL for password reset
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(str(user.pk).encode())
-                # Generate the password reset URL
-                reset_url = f"http://{get_current_site(request).domain}/reset-password/{uid}/{token}/"
-                # Send email
-                send_mail(
-                    subject="Password Reset Request",
-                    message=f"Click the link to reset your password: {reset_url}",
-                    from_email="no-reply@omnia.com",  # Replace with your email address
-                    recipient_list=[email],
-                )
-                messages.success(request, "A password reset link has been sent to your email address.")
-                return redirect('login')
-            except CustomUser.DoesNotExist:
-                messages.error(request, "No user found with that email address.")
-        else:
-            messages.error(request, "Please provide a valid email address.")
-    else:
-        form = ForgotPasswordForm()
-    return render(request, 'users/forgotpass.html', {'form': form})
-
-
-def reset_password(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = CustomUser.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-        user = None
-
-    if user and default_token_generator.check_token(user, token):
-        if request.method == 'POST':
-            form = ResetPasswordForm(user, request.POST)
-            if form.is_valid():
-                form.save()
-                messages.success(request, "Your password has been reset successfully!")
-                return redirect('login')
-        else:
-            form = ResetPasswordForm(user)
-    else:
-        messages.error(request, "The reset link is invalid or has expired.")
-        return redirect('login')
-
-    return render(request, 'users/reset_password.html', {'form': form})
-# def reset_password(request, uidb64, token):
-#     try:
-#         uid = urlsafe_base64_decode(uidb64).decode()
-#         user = CustomUser.objects.get(pk=uid)
-#     except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-#         user = None
-
-#     if user and default_token_generator.check_token(user, token):
-#         if request.method == 'POST':
-#             form = SetPasswordForm(user, request.POST)
-#             if form.is_valid():
-#                 form.save()
-#                 messages.success(request, "Your password has been reset successfully!")
-#                 return redirect('login')
-#         else:
-#             form = SetPasswordForm(user)
-#     else:
-#         messages.error(request, "The reset link is invalid or has expired.")
-#         return redirect('login')
-
-#     return render(request, 'users/reset_password.html', {'form': form})
 
 @login_required
 def dashboard(request):
