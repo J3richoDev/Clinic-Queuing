@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    path('login/', views.login_view, name='login'),
+    path('login/', views.StaffPatientLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register, name='register'),
     
@@ -19,11 +19,7 @@ urlpatterns = [
     
     path('register-superadmin/', views.register_superadmin, name='register_superadmin'),
     
-    path('create-staff/', views.create_staff, name='create_staff'),
+    path('manage-staff', views.manage_staff, name='manage_staff'),
     path('create-patient/', views.create_patient, name='create_patient'),
 
-    # newly added path
-    path('forgot-password/', views.forgot_password, name='forgot_password'),
-    path('reset-password/<uidb64>/<token>/', views.reset_password, name='reset_password')
-    # path('reset-password/', reset_password, name='reset_password')
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

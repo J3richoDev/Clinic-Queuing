@@ -71,66 +71,9 @@
                       </a>
                   </li>
                       <span class="py-1"></span>
-  
-  
-                  {% if request.user.role == 'manager' %}
-                      <h2 class="text-sm font-bold mt-4 mb-2">Projects</h2>
-                      <li tabindex="0" role="button" class="dropdown dropdown-bottom z-50">
-                          <span class="flex items-center text-base font-medium rounded-lg transition duration-75 border">
-                              {% if request.session.current_project_id %}
-                                  {% with current_project=user_projects|get_item:request.session.current_project_id %}
-                                      <i class="fas {{ current_project.emoji_icon }} text-lg text-gray-100 bg-{{ current_project.color }}-500 w-8 h-8 flex items-center justify-center rounded-md mr-2"></i>
-                                      <span class="truncate max-w-[150px] min-w-[150px] flex items-center">
-                                          {{ current_project.name }}
-                                      </span>
-                                  {% endwith %}
-                              {% else %}
-                                  Select Project
-                              {% endif %}
-  
-                              <svg class="w-6 h-6 text-gray-800 ml-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                              </svg>
-                          </span>
-                          <div tabindex="0" class="flex flex-col w-72 text-gray-700 menu menu-compact dropdown-content mt-3 shadow-lg border border-gray-300 bg-base-100 divide-y divide-solid hover:bg-white">
-                              <div class="w-full text-left pl-3 my-2">
-                                  <p class="text-base font-medium">
-                                      Select Project
-                                  </p>
-                              </div>
-                              <div class="max-h-40 w-full overflow-y-auto">
-                                  <ul class="m-0 p-0">
-                                  {% for project in user_projects %}
-                                      <li>
-                                          <a href="{% url 'set_current_project' project.id %}"
-                                             class="block py-2 px-4 truncate max-w-[230px] min-w-[230px]
-                                                    {% if project.id|stringformat:'d' == request.session.current_project_id|stringformat:'d' %}bg-{{project.color}}-500 hover:bg-{{project.color}}-300 text-white{% else %}hover:bg-gray-200{% endif %}">
-                                             <i class="fas {{ project.emoji_icon }} text-lg py-0.5 px-2 rounded-md mr-2
-                                                      {% if project.id|stringformat:'d' == request.session.current_project_id|stringformat:'d' %}text-white{% else %}text-{{project.color}}-700{% endif %}"></i>
-                                              {{ project.name }}
-                                          </a>
-                                      </li>
-                                  {% empty %}
-                                      <li class="block py-2 px-4 text-gray-500">No projects available</li>
-                                  {% endfor %}
-                                  </ul>
-                              </div>
-                              <div class="flex flex-row gap-5 border-b py-2 border-base-600 justify-between max-w-full">
-                                  <button id="open-create-project-btn" onclick="create_project_modal.showModal()"
-                                     class="btn btn-outline">
-                                      Create new
-                                  </button>
-                                  <a href="/projects/projects" class="btn btn-outline">
-                                      Browse all
-                                  </a>
-                              </div>
-                          </div>
-                      </li>
-                      <span class="py-3"></span>
-                      {% if request.session.current_project_id %}
-                      <h2 class="text-sm font-bold mb-2">Manage Project</h2>
+                  {% if request.user.is_superuser %}
                       <li>
-                          <a href="{% url 'dashboard' %}"
+                          <a href="{% url 'manage_staff' %}"
                              class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if request.path == '/projects/dashboard/' %}active{% endif %}"
                           >
                               <svg
@@ -143,163 +86,22 @@
                                   <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
                                   <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
                                 </svg>
-                             <span class="ml-3">Dashboard</span>
+                             <span class="ml-3">Manage Staff</span>
                           </a>
                       </li>
-                      <li>
-                          <a href="{% url 'project_sprints' %} "
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'sprint' in request.path %}active{% endif %}">
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                  <path fill="currentcolor" d="m17.717 17.137-1.436-1.438a1.003 1.003 0 0 1 1.418-1.418l3.007 3.01a1 1 0 0 1 0 1.417l-3.007 3.01a1.003 1.003 0 0 1-1.417-1.42l1.3-1.3-6.072-.003A8 8 0 0 1 4 11.01C4 6.587 7.582 3 12 3s8 3.587 8 8.01a8 8 0 0 1-.789 3.451l-1.438-1.44a6.1 6.1 0 0 0 .345-2.01A6.12 6.12 0 0 0 12 4.884a6.12 6.12 0 0 0-6.118 6.125 6.12 6.12 0 0 0 5.647 6.102zm-12.163-.119c.561.759 1.456 1.49 2.457 1.981L3.937 19C3.42 19 3 18.552 3 18s.42-1 .937-1l1.614.005z"></path>
-                              </svg>
-                             <span class="ml-3">Sprint</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'project_tasks' %} "
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'tasks' in request.path %}active{% endif %}">
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4Zm0 6h16v6H4v-6Z" clip-rule="evenodd"/>
-                                <path fill-rule="evenodd" d="M5 14a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm5 0a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
-                              </svg>
-                             <span class="ml-3">Tasks</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'kanban_board' %}"
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'kanban' in request.path %}active{% endif %}">
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M15 4H9v16h6V4Zm2 16h3a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3v16ZM4 4h3v16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" clip-rule="evenodd"/>
-                              </svg>
-                             <span class="ml-3">Kanban Board</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'gantt_chart' %}"
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'gantt' in request.path %}active{% endif %}"
-                          >
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/>
-                              </svg>
-                             <span class="ml-3">Gantt Chart</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'reports' %}" class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'reports' in request.path %}active{% endif %}"
-                          >
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M9 2.221V7H4.221a2 2 0 0 1 .365-.5L8.5 2.586A2 2 0 0 1 9 2.22ZM11 2v5a2 2 0 0 1-2 2H4v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-7ZM8 16a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1Zm1-5a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H9Z" clip-rule="evenodd"/>
-                              </svg>
-                             <span class="ml-3">Reports</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'create_member' %}" class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'members' in request.path %}active{% endif %}"
-                          >
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M8 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-2 9a4 4 0 0 0-4 4v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-1a4 4 0 0 0-4-4H6Zm7.25-2.095c.478-.86.75-1.85.75-2.905a5.973 5.973 0 0 0-.75-2.906 4 4 0 1 1 0 5.811ZM15.466 20c.34-.588.535-1.271.535-2v-1a5.978 5.978 0 0 0-1.528-4H18a4 4 0 0 1 4 4v1a2 2 0 0 1-2 2h-4.535Z" clip-rule="evenodd"/>
-                              </svg>
-                             <span class="ml-3">Members</span>
-                          </a>
-                      </li>
-                      {% endif %}
                   {% else %}
-                  {% if user_projects %}
-                  <h2 class="text-sm font-bold mt-4 mb-2">Assigned Projects</h2>
-                      <li tabindex="0" role="button" class="dropdown dropdown-bottom z-50">
-                          <span class="flex items-center text-base font-medium rounded-lg transition duration-75 border">
-                              {% if request.session.current_project_id %}
-                                  {% with current_project=user_projects|get_item:request.session.current_project_id %}
-                                      <i class="fas {{ current_project.emoji_icon }} text-lg text-gray-100 bg-{{ current_project.color }}-500 w-8 h-8 flex items-center justify-center rounded-md mr-2"></i>
-                                      <span class="truncate max-w-[150px] min-w-[150px] flex items-center">
-                                          {{ current_project.name }}
-                                      </span>
-                                  {% endwith %}
-                              {% else %}
-                                  Select Project
-                              {% endif %}
-  
-                              <svg class="w-6 h-6 text-gray-800 ml-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/>
-                              </svg>
-                          </span>
-                          <div tabindex="0" class="flex flex-col w-72 text-gray-700 menu menu-compact dropdown-content mt-3 shadow-lg border border-gray-300 bg-base-100 divide-y divide-solid hover:bg-white">
-                              <div class="w-full text-left pl-3 my-2">
-                                  <p class="text-base font-medium">
-                                      Select Project
-                                  </p>
-                              </div>
-                              <div class="max-h-40 w-full overflow-y-auto">
-                                  <ul class="m-0 p-0">
-                                  {% for project in user_projects %}
-                                      <li>
-                                          <a href="{% url 'set_current_project' project.id %}"
-                                             class="block py-2 px-4 truncate max-w-[230px] min-w-[230px]
-                                                    {% if project.id|stringformat:'d' == request.session.current_project_id|stringformat:'d' %}bg-{{project.color}}-500 hover:bg-{{project.color}}-300 text-white{% else %}hover:bg-gray-200{% endif %}">
-                                             <i class="fas {{ project.emoji_icon }} text-lg py-0.5 px-2 rounded-md mr-2
-                                                      {% if project.id|stringformat:'d' == request.session.current_project_id|stringformat:'d' %}text-white{% else %}text-{{project.color}}-700{% endif %}"></i>
-                                              {{ project.name }}
-                                          </a>
-                                      </li>
-                                  {% empty %}
-                                      <li class="block py-2 px-4 text-gray-500">No projects available</li>
-                                  {% endfor %}
-                                  </ul>
-                              </div>
-                          </div>
-                      </li>
-                      <span class="py-3"></span>
-                      <h2 class="text-sm font-bold mt-4 mb-2">Manage Tasks</h2>
-                      <li>
-                          <a href="{% url 'dashboard' %}"
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if request.path == '/projects/dashboard/' %}active{% endif %}"
-                          >
-                              <svg
-                                  aria-hidden="true"
-                                  class="w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
-                                  <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
-                                </svg>
-                             <span class="ml-3">Dashboard</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'my_tasks' %}"
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'tasks' in request.path %}active{% endif %}">
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4Zm0 6h16v6H4v-6Z" clip-rule="evenodd"/>
-                                <path fill-rule="evenodd" d="M5 14a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm5 0a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
-                              </svg>
-                             <span class="ml-3">My Tasks</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'my_project_sprints' %} "
-                             class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'sprint' in request.path %}active{% endif %}">
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                  <path fill="currentcolor" d="m17.717 17.137-1.436-1.438a1.003 1.003 0 0 1 1.418-1.418l3.007 3.01a1 1 0 0 1 0 1.417l-3.007 3.01a1.003 1.003 0 0 1-1.417-1.42l1.3-1.3-6.072-.003A8 8 0 0 1 4 11.01C4 6.587 7.582 3 12 3s8 3.587 8 8.01a8 8 0 0 1-.789 3.451l-1.438-1.44a6.1 6.1 0 0 0 .345-2.01A6.12 6.12 0 0 0 12 4.884a6.12 6.12 0 0 0-6.118 6.125 6.12 6.12 0 0 0 5.647 6.102zm-12.163-.119c.561.759 1.456 1.49 2.457 1.981L3.937 19C3.42 19 3 18.552 3 18s.42-1 .937-1l1.614.005z"></path>
-                              </svg>
-                             <span class="ml-3">Sprint</span>
-                          </a>
-                      </li>
-                      <li>
-                          <a href="{% url 'my_kanban' %}"
-                            class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'kanban' in request.path %}active{% endif %}">
-                              <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                <path fill-rule="evenodd" d="M15 4H9v16h6V4Zm2 16h3a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3v16ZM4 4h3v16H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" clip-rule="evenodd"/>
-                              </svg>
-                             <span class="ml-3">Kanban Board</span>
-                          </a>
-                      </li>
-                      {% else %}
-                      <h2 class="text-sm text-center font-bold mt-4 mb-2">No Assigned Project</h2>
+                  <li>
+                    <a href="{% url 'my_tasks' %}"
+                       class="flex items-center p-2 text-base font-medium rounded-lg transition duration-75 {% if 'tasks' in request.path %}active{% endif %}">
+                        <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                          <path fill-rule="evenodd" d="M4 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H4Zm0 6h16v6H4v-6Z" clip-rule="evenodd"/>
+                          <path fill-rule="evenodd" d="M5 14a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Zm5 0a1 1 0 0 1 1-1h5a1 1 0 1 1 0 2h-5a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                        </svg>
+                       <span class="ml-3">My Tasks</span>
+                    </a>
+                   </li>
                   {% endif %}
-                  {% endif %}
-              </ul>
+                </ul>
               </div>
                 <footer class="dropdown dropdown-top border m-3 rounded-lg shadow-md">
                 <label tabindex="0" class="btn btn-ghost w-full grid grid-cols-3">

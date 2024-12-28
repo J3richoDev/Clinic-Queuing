@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks%}
+
+{% block title %}Manage Staff{% endblock %}
+{% block heading %}Manage Staff{% endblock %}
+
+{% block content %}
+
+{% if request.user.is_superuser %}
+<h1>Create Staff Account</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Staff Details</legend>
+            <div>
+                <label for="email">Email:</label>
+                {{ user_form.email|add_class:"input input-bordered w-full max-w-xs"|attr:"placeholder:Email"}}
+            </div>
+            <div>
+                <label for="username">Username:</label>
+                {{ user_form.username|add_class:"input input-bordered w-full max-w-xs"|attr:"placeholder:Username" }}
+            </div>
+            <div>
+                <label for="password1">Password:</label>
+                {{ user_form.password1|add_class:"input input-bordered w-full max-w-xs"|attr:"placeholder:Password" }}
+            </div>
+            <div>
+                <label for="password2">Confirm Password:</label>
+                {{ user_form.password2|add_class:"input input-bordered w-full max-w-xs"|attr:"placeholder:Confirm Password" }}
+            </div>
+            <div>
+                <label for="role">Role:</label>
+                {{ staff_form.role|add_class:"input input-bordered w-full max-w-xs" }}
+            </div>
+            <div>
+                {% if user_form.errors %}
+                <p class="text-sm text-red-500 mt-1">
+                    {{ user_form.non_field_errors|striptags }}
+                </p>
+                {% endif %}
+            </div>
+            
+        </fieldset>
+        <button type="submit">Create Staff</button>
+    </form>
+
+    <h2>Staff List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for staff in staff_list %}
+                <tr>
+                    <td>{{ staff.username }}</td>
+                    <td>{{ staff.email }}</td>
+                    <td>
+                        <!-- Add action buttons like edit, delete, etc. -->
+                        <a href="">Edit</a>
+                        <a href="">Delete</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endif %}
+
+{% endblock %}
