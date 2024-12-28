@@ -2,7 +2,6 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.forms import SetPasswordForm
 from .models import CustomUser, Staff, Patient
 from django import forms
-from projects.models import Project
 
 
 class CustomAuthenticationForm(AuthenticationForm):
