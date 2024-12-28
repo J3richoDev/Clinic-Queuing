@@ -51,10 +51,10 @@ def register(request):
     return render(request, 'users/register.html', {'form': form})
 
 class SuperAdminLoginView(LoginView):
-    template_name = 'accounts/superadmin_login.html'
+    template_name = 'superadmin/superadmin_login.html'
 
 class StaffPatientLoginView(LoginView):
-    template_name = 'accounts/staff_patient_login.html'
+    template_name = 'superadmin/staff_patient_login.html'
 
 @login_required
 def create_staff(request):
